@@ -50,21 +50,22 @@ const SLIDES = [
 function SlideOne({ slide }) {
   const Icon = slide.Icon;
   return (
-    <LinearGradient
-      colors={['#FF2A5F', '#7000FF']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-      style={styles.slideFull}
-    >
+    <View style={[styles.slideFull, { backgroundColor: COLORS.obsidian }]}>
+      <LinearGradient
+        colors={['rgba(255, 42, 95, 0.25)', 'transparent']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       <NoiseOverlay opacity={0.12} />
       <View style={styles.contentBottomThird}>
-        <View style={[styles.iconContainer, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
-          <Icon size={32} color="#FFFFFF" strokeWidth={1.5} />
+        <View style={[styles.iconContainer, { backgroundColor: COLORS.carbon, borderColor: COLORS.graphite, borderWidth: 1 }]}>
+          <Icon size={32} color={COLORS.plasma} strokeWidth={1.5} />
         </View>
-        <Typography style={styles.slideTitleWhite}>{slide.title}</Typography>
-        <Typography style={styles.slideSubtitleLight}>{slide.subtitle}</Typography>
+        <Typography variant="h1" style={styles.slideTitleWhite}>{slide.title}</Typography>
+        <Typography variant="bodyMedium" style={styles.slideSubtitleLight}>{slide.subtitle}</Typography>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -89,8 +90,8 @@ function SlideTwo({ slide }) {
         <View style={[styles.iconContainer, { backgroundColor: COLORS.carbon, borderColor: COLORS.graphite, borderWidth: 1 }]}>
           <Icon size={32} color={COLORS.plasma} strokeWidth={1.5} />
         </View>
-        <Typography style={styles.slideTitleWhite}>{slide.title}</Typography>
-        <Typography style={styles.slideSubtitleLight}>{slide.subtitle}</Typography>
+        <Typography variant="h1" style={styles.slideTitleWhite}>{slide.title}</Typography>
+        <Typography variant="bodyMedium" style={styles.slideSubtitleLight}>{slide.subtitle}</Typography>
       </View>
     </View>
   );
@@ -110,8 +111,8 @@ function SlideThree({ slide }) {
         <View style={[styles.iconContainer, { backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1 }]}>
           <Icon size={32} color="#FFFFFF" strokeWidth={1.5} />
         </View>
-        <Typography style={styles.slideTitleWhite}>{slide.title}</Typography>
-        <Typography style={styles.slideSubtitleLight}>{slide.subtitle}</Typography>
+        <Typography variant="h1" style={styles.slideTitleWhite}>{slide.title}</Typography>
+        <Typography variant="bodyMedium" style={styles.slideSubtitleLight}>{slide.subtitle}</Typography>
       </View>
     </View>
   );
@@ -125,11 +126,11 @@ function SlideFour({ slide }) {
         <View style={[styles.iconContainer, { backgroundColor: COLORS.carbon, borderColor: COLORS.graphite, borderWidth: 1 }]}>
           <Icon size={32} color={COLORS.plasma} strokeWidth={1.5} />
         </View>
-        <Typography style={styles.slideTitleWhite}>{slide.title}</Typography>
-        <Typography style={[styles.slideSubtitleLight, { fontStyle: 'italic', color: COLORS.textSecondary }]}>
+        <Typography variant="h1" style={styles.slideTitleWhite}>{slide.title}</Typography>
+        <Typography variant="bodyMedium" style={[styles.slideSubtitleLight, { fontStyle: 'italic', color: COLORS.textSecondary }]}>
           {slide.quote}
         </Typography>
-        <Typography style={[styles.slideSubtitleLight, { color: COLORS.textMuted, marginTop: 8 }]}>
+        <Typography variant="label" style={[styles.slideSubtitleLight, { color: COLORS.textMuted, marginTop: 8 }]}>
           {slide.attribution}
         </Typography>
       </View>
@@ -242,16 +243,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   slideTitleWhite: {
-    fontFamily: FONTS.h1, // closest to Outfit 700
-    fontSize: 36,
     color: '#FFFFFF',
     marginBottom: 12,
   },
   slideSubtitleLight: {
-    fontFamily: FONTS.body, // Inter 400
-    fontSize: 16,
     color: 'rgba(255,255,255,0.75)',
-    lineHeight: 24,
   },
   footerGradient: {
     position: 'absolute',

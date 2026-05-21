@@ -133,12 +133,12 @@ export default function HomeScreen() {
           style={styles.heroBanner}
         >
           <NoiseOverlay opacity={0.15} />
-          {/* Radial Glow Simulation */}
-          <View style={styles.heroGlow} />
-
+          {/* Removed hard circular glow for a cleaner look */}
+          
           <View style={styles.heroLayout}>
             <View style={styles.heroLeft}>
               <View style={styles.heroPill}>
+                <Sparkles color="#FFFFFF" size={12} strokeWidth={2} />
                 <Typography variant="caption" color={COLORS.textPrimary} style={styles.heroPillText}>
                   CAST YOUR VISION
                 </Typography>
@@ -151,6 +151,8 @@ export default function HomeScreen() {
               </Typography>
             </View>
             <View style={styles.heroRight}>
+              {/* Stacked background card for depth */}
+              <View style={styles.cardStackBack} />
               {latestGeneration ? (
                 <Image source={{ uri: latestGeneration }} style={styles.heroThumb} />
               ) : (
@@ -278,69 +280,87 @@ const styles = StyleSheet.create({
   scrollContent: { paddingHorizontal: SIZES.paddingGlobal },
   
   heroBanner: {
-    height: 180,
-    borderRadius: SIZES.radiusCard,
+    height: 220,
+    borderRadius: 24,
     marginBottom: 24,
     overflow: 'hidden',
     position: 'relative',
     justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  heroGlow: {
-    position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    top: -50,
-    left: -50,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,42,95,0.4)',
   },
   heroLayout: {
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    alignItems: 'center',
   },
   heroLeft: {
     flex: 1,
-    justifyContent: 'space-between',
-    height: '100%',
-    paddingTop: 4,
+    justifyContent: 'center',
+    gap: 10,
+    paddingRight: 10,
   },
   heroPill: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
     borderRadius: 9999,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     alignSelf: 'flex-start',
+    marginBottom: 8,
   },
   heroPillText: {
     fontSize: 10,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1.5,
     fontFamily: FONTS.bodySemi,
   },
   heroTitle: {
-    fontFamily: FONTS.h2,
-    fontSize: 24,
-    marginBottom: 4,
+    fontFamily: FONTS.h1,
+    fontSize: 32,
+    lineHeight: 38,
+    color: '#FFFFFF',
   },
   heroSubtitle: {
     fontFamily: FONTS.body,
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 4,
+    lineHeight: 22,
   },
   heroRight: {
-    paddingBottom: 10,
+    paddingLeft: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 110,
+    position: 'relative',
+  },
+  cardStackBack: {
+    position: 'absolute',
+    width: 90,
+    height: 100,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    transform: [{ rotate: '8deg' }, { translateX: 10 }, { translateY: 5 }],
   },
   heroThumb: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    transform: [{ rotate: '-5deg' }],
+    width: 96,
+    height: 106,
+    borderRadius: 16,
+    transform: [{ rotate: '-6deg' }],
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    zIndex: 2,
   },
   heroThumbPlaceholder: {
     backgroundColor: 'rgba(255,255,255,0.2)',
