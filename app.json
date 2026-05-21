@@ -1,16 +1,18 @@
 {
   "expo": {
-    "name": "imajinn-app",
-    "slug": "imajinn-app",
+    "name": "Kast",
+    "slug": "kast-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "imajinnapp",
+    "scheme": "kastapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.kastapp.kast"
     },
     "android": {
+      "package": "com.kastapp.kast",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -34,7 +36,9 @@
             "imageWidth": 76
           }
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,
