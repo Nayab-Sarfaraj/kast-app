@@ -14,7 +14,7 @@ export const useAppStore = create((set) => ({
   settings: {
     aspectRatio: '1:1',
     cfgScale: 3.5,
-    steps: 25,
+    steps: 4,
     seed: null,
     negativePrompt: '',
   },
@@ -38,7 +38,7 @@ export const useAppStore = create((set) => ({
     settings: {
       aspectRatio: '1:1',
       cfgScale: 3.5,
-      steps: 25,
+      steps: 4,
       seed: null,
       negativePrompt: '',
     }

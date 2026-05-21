@@ -8,10 +8,13 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { X, Zap, Infinity, Paintbrush, Image as ImageIcon, Check, Users } from 'lucide-react-native';
 import { COLORS, SIZES, FONTS } from '../src/constants/theme';
 import Typography from '../src/components/Typography';
 import Button from '../src/components/Button';
+import { authAPI } from '../src/services/api';
+import { useAppStore } from '../src/store/useAppStore';
 import GradientPill from '../src/components/GradientPill';
 import NoiseOverlay from '../src/components/NoiseOverlay';
 
@@ -33,12 +36,39 @@ const COMPARISON = [
 export default function PaywallScreen() {
   const [selectedPlan, setSelectedPlan] = useState('annual');
   const [timeLeft] = useState('23:47:12');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const setCredentials = useAppStore(state => state.setCredentials);
+
+  const handleContinue = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    try {
+      let deviceId = await SecureStore.getItemAsync('kast_device_id');
+      if (!deviceId) {
+        deviceId = 'device_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+        await SecureStore.setItemAsync('kast_device_id', deviceId);
+      }
+      
+      const res = await authAPI.register(deviceId);
+      
+      if (res.token) {
+        await SecureStore.setItemAsync('kast_jwt', res.token);
+        setCredentials(deviceId, res.token);
+      }
+      
+      router.replace('/(tabs)/home');
+    } catch (error) {
+      console.error('Failed to register device', error);
+      alert('Network error. Please try again.');
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
       {/* Skip button */}
       <SafeAreaView style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.replace('/(tabs)/home')} style={styles.closeBtn}>
+        <TouchableOpacity onPress={handleContinue} style={styles.closeBtn}>
           <X color={COLORS.textSecondary} size={24} strokeWidth={1.5} />
         </TouchableOpacity>
       </SafeAreaView>
@@ -163,7 +193,7 @@ export default function PaywallScreen() {
         <Button
           title="Unlock Pro Now →"
           variant="gradient"
-          onPress={() => router.replace('/(tabs)/home')}
+          onPress={handleContinue}
           style={styles.cta}
         />
 

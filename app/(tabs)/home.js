@@ -7,28 +7,49 @@ import {
   TouchableOpacity,
   SafeAreaView,
   FlatList,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Sparkles, History, Settings, ChevronRight, Image as ImageIcon } from 'lucide-react-native';
+import { Sparkles, Settings, ChevronRight, Image as ImageIcon, Zap, Shuffle } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { COLORS, SIZES, FONTS } from '../../src/constants/theme';
 import Typography from '../../src/components/Typography';
-import Button from '../../src/components/Button';
-import GradientPill from '../../src/components/GradientPill';
 import NoiseOverlay from '../../src/components/NoiseOverlay';
 import { useAppStore } from '../../src/store/useAppStore';
-import { metaAPI } from '../../src/services/api';
+import { metaAPI, generationAPI } from '../../src/services/api';
 
-const TABS = [
-  { name: 'home', icon: Sparkles, label: 'Generate' },
-  { name: 'history', icon: History, label: 'History' },
-  { name: 'credits', icon: Settings, label: 'Credits' },
+const RANDOM_PROMPTS = [
+  "A lone astronaut on a neon-lit alien planet",
+  "Cyberpunk samurai in the rain, cinematic",
+  "Ancient library with floating books and golden light",
+  "A wolf made of storm clouds at midnight",
+  "Underwater city with bioluminescent creatures",
+  "A giant mechanical spider weaving a web of stars",
+  "Holographic Koi fish swimming through a futuristic city",
+  "A cozy cabin in the woods, glowing warmly in the snow",
+  "A magical forest where the leaves are glowing crystals",
+  "A steampunk airship flying through cotton candy clouds",
+  "A knight with armor made of dark glass facing a dragon",
+  "A floating island with waterfalls cascading into space",
+  "A sleek futuristic sports car driving on a synthwave grid",
+  "A portrait of a queen with a crown made of fire",
+  "An abandoned temple overgrown with glowing moss",
+  "A wizard casting a spell that creates a miniature galaxy",
+  "A robotic dog playing fetch with a drone",
+  "A massive tree with a city built into its branches",
+  "A post-apocalyptic desert with giant rusted mechs",
+  "A magical potion bottle containing a tiny thunderstorm"
+];
+
+const MOCK_STYLES = [
+  { name: 'Cinematic' }, { name: 'Anime' }, { name: 'Photorealistic' },
+  { name: 'Oil Canvas' }, { name: 'Watercolor' }, { name: 'Neon' },
 ];
 
 export default function HomeScreen() {
-  const { currentPrompt, selectedStyle, setPrompt, setStyle } = useAppStore();
-  const [activeTab, setActiveTab] = useState('home');
+  const { currentPrompt, selectedStyle, selectedModel, settings, setPrompt, setStyle, setModel } = useAppStore();
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const { data: stylesData } = useQuery({
     queryKey: ['styles'],
@@ -42,11 +63,37 @@ export default function HomeScreen() {
     staleTime: Infinity,
   });
 
-  const styles_list = stylesData || [];
+  const { data: historyData } = useQuery({
+    queryKey: ['history', 'latest'],
+    queryFn: () => generationAPI.getHistory({ pageParam: 1 }),
+  });
 
-  const handleGenerate = () => {
-    if (!currentPrompt.trim()) return;
-    router.push('/loading');
+  const styles_list = stylesData || [];
+  const models_list = modelsData || [];
+  const latestGeneration = historyData?.data?.[0]?.imageUrl;
+
+  const handleGenerate = async () => {
+    if (!currentPrompt.trim() || isGenerating) return;
+    try {
+      setIsGenerating(true);
+      const res = await generationAPI.generate({
+        prompt: currentPrompt,
+        modelId: selectedModel,
+        styleName: selectedStyle,
+        settings,
+      });
+      router.push({ pathname: '/loading', params: { jobId: res.jobId } });
+    } catch (error) {
+      console.error('Failed to start generation', error);
+      alert('Failed to start generation. Check if you have credits!');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleRandomPrompt = () => {
+    const randomPrompt = RANDOM_PROMPTS[Math.floor(Math.random() * RANDOM_PROMPTS.length)];
+    setPrompt(randomPrompt);
   };
 
   return (
@@ -78,25 +125,41 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Hero Banner */}
+        {/* Hero Banner Redesign */}
         <LinearGradient
-          colors={['rgba(255,42,95,0.15)', 'rgba(112,0,255,0.15)']}
+          colors={['#FF2A5F', '#7000FF']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.heroBanner}
         >
-          <NoiseOverlay />
-          <View style={styles.heroPill}>
-            <Typography variant="caption" color={COLORS.plasma} style={{ fontFamily: FONTS.bodySemi, letterSpacing: 1 }}>
-              MASTERPIECE
-            </Typography>
+          <NoiseOverlay opacity={0.15} />
+          {/* Radial Glow Simulation */}
+          <View style={styles.heroGlow} />
+
+          <View style={styles.heroLayout}>
+            <View style={styles.heroLeft}>
+              <View style={styles.heroPill}>
+                <Typography variant="caption" color={COLORS.textPrimary} style={styles.heroPillText}>
+                  CAST YOUR VISION
+                </Typography>
+              </View>
+              <Typography color={COLORS.textPrimary} style={styles.heroTitle}>
+                Create Art in Seconds
+              </Typography>
+              <Typography variant="label" style={styles.heroSubtitle}>
+                AI-powered imagery, on demand.
+              </Typography>
+            </View>
+            <View style={styles.heroRight}>
+              {latestGeneration ? (
+                <Image source={{ uri: latestGeneration }} style={styles.heroThumb} />
+              ) : (
+                <View style={[styles.heroThumb, styles.heroThumbPlaceholder]}>
+                  <ImageIcon color={COLORS.textPrimary} size={32} opacity={0.5} strokeWidth={1.5} />
+                </View>
+              )}
+            </View>
           </View>
-          <Typography variant="h3" color={COLORS.textPrimary} style={styles.heroTitle}>
-            Create Art in Seconds
-          </Typography>
-          <Typography variant="label" color={COLORS.textSecondary}>
-            AI-powered imagery, on demand.
-          </Typography>
         </LinearGradient>
 
         {/* Style Picker */}
@@ -140,10 +203,19 @@ export default function HomeScreen() {
           )}
         />
 
+
+
         {/* Prompt Input */}
-        <Typography variant="label" color={COLORS.textSecondary} style={styles.promptLabel}>
-          Creative Prompt
-        </Typography>
+        <View style={styles.promptHeader}>
+          <Typography variant="label" color={COLORS.textSecondary}>
+            Creative Prompt
+          </Typography>
+          <TouchableOpacity style={styles.randomBtn} onPress={handleRandomPrompt}>
+            <Shuffle color={COLORS.plasma} size={16} strokeWidth={2} />
+            <Typography variant="caption" color={COLORS.plasma}>Random</Typography>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.promptBox}>
           <TextInput
             style={styles.promptInput}
@@ -167,8 +239,7 @@ export default function HomeScreen() {
           <ChevronRight color={COLORS.textMuted} size={14} strokeWidth={1.5} />
         </TouchableOpacity>
 
-        {/* Spacer for FAB */}
-        <View style={{ height: 100 }} />
+        <View style={{ height: 200 }} />
       </ScrollView>
 
       {/* Floating Generate Button */}
@@ -183,46 +254,9 @@ export default function HomeScreen() {
           <Typography variant="bodySemi" color={COLORS.textPrimary}>Generate</Typography>
         </TouchableOpacity>
       </View>
-
-      {/* Bottom Nav */}
-      <SafeAreaView style={styles.bottomNav}>
-        <View style={styles.tabBar}>
-          {TABS.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.name;
-            return (
-              <TouchableOpacity
-                key={tab.name}
-                style={styles.tab}
-                onPress={() => {
-                  setActiveTab(tab.name);
-                  if (tab.name !== 'home') router.push(`/(tabs)/${tab.name}`);
-                }}
-              >
-                <Icon
-                  color={isActive ? COLORS.plasma : COLORS.textMuted}
-                  size={24}
-                  strokeWidth={1.5}
-                />
-                <Typography
-                  variant="caption"
-                  color={isActive ? COLORS.plasma : COLORS.textMuted}
-                >
-                  {tab.label}
-                </Typography>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </SafeAreaView>
     </View>
   );
 }
-
-const MOCK_STYLES = [
-  { name: 'Cinematic' }, { name: 'Anime' }, { name: 'Photorealistic' },
-  { name: 'Oil Canvas' }, { name: 'Watercolor' }, { name: 'Neon' },
-];
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.obsidian },
@@ -242,35 +276,89 @@ const styles = StyleSheet.create({
   proText: { fontFamily: FONTS.bodySemi, letterSpacing: 1 },
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: SIZES.paddingGlobal },
+  
   heroBanner: {
-    height: 160,
+    height: 180,
     borderRadius: SIZES.radiusCard,
-    padding: 20,
-    justifyContent: 'flex-end',
-    borderWidth: 1,
-    borderColor: 'rgba(255,42,95,0.3)',
     marginBottom: 24,
     overflow: 'hidden',
     position: 'relative',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  heroGlow: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    top: -50,
+    left: -50,
+  },
+  heroLayout: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  heroLeft: {
+    flex: 1,
+    justifyContent: 'space-between',
+    height: '100%',
+    paddingTop: 4,
   },
   heroPill: {
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderWidth: 1,
-    borderColor: COLORS.plasma,
+    borderColor: 'rgba(255,255,255,0.3)',
     borderRadius: 9999,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     alignSelf: 'flex-start',
-    marginBottom: 8,
   },
-  heroTitle: { marginBottom: 4 },
+  heroPillText: {
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontFamily: FONTS.bodySemi,
+  },
+  heroTitle: {
+    fontFamily: FONTS.h2,
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  heroSubtitle: {
+    fontFamily: FONTS.body,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.7)',
+  },
+  heroRight: {
+    paddingBottom: 10,
+  },
+  heroThumb: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    transform: [{ rotate: '-5deg' }],
+  },
+  heroThumbPlaceholder: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
+  sectionLabel: { marginBottom: 12 },
   sectionLink: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  
   stylesList: { paddingBottom: 4, gap: 10, marginBottom: 24 },
   styleTile: {
     width: 100,
@@ -288,7 +376,49 @@ const styles = StyleSheet.create({
   },
   styleTileInner: { alignItems: 'center', gap: 6 },
   styleName: { textAlign: 'center' },
-  promptLabel: { marginBottom: 8 },
+
+  modelList: {
+    gap: 8,
+    marginBottom: 24,
+    paddingBottom: 4,
+  },
+  modelPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: COLORS.carbon,
+    borderWidth: 1,
+    borderColor: COLORS.graphite,
+    borderRadius: 9999,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  modelPillSelected: {
+    backgroundColor: COLORS.plasma,
+    borderColor: COLORS.plasma,
+  },
+  modelCostBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    opacity: 0.8,
+  },
+
+  promptHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  randomBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: 'rgba(255,42,95,0.1)',
+    borderRadius: 12,
+  },
   promptBox: {
     backgroundColor: COLORS.carbon,
     borderWidth: 1,
@@ -312,9 +442,10 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 12,
   },
+  
   fabContainer: {
     position: 'absolute',
-    bottom: 80,
+    bottom: 100,
     left: SIZES.paddingGlobal,
     right: SIZES.paddingGlobal,
   },
@@ -328,19 +459,4 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   fabDisabled: { opacity: 0.5 },
-  bottomNav: {
-    backgroundColor: COLORS.obsidian,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.graphite,
-  },
-  tabBar: {
-    flexDirection: 'row',
-    height: 60,
-  },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  },
 });

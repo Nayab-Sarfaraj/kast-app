@@ -4,23 +4,33 @@ import {
   ScrollView,
   SafeAreaView,
   TouchableOpacity,
+  Alert,
+  Linking
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Zap, Crown } from 'lucide-react-native';
+import { Crown, Bug, Mail, Shield, FileText, Trash2, ChevronRight } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { COLORS, SIZES, FONTS } from '../../src/constants/theme';
 import Typography from '../../src/components/Typography';
 import Button from '../../src/components/Button';
 import NoiseOverlay from '../../src/components/NoiseOverlay';
 import { authAPI } from '../../src/services/api';
+import { useAppStore } from '../../src/store/useAppStore';
 
-const MODEL_COSTS = [
-  { name: 'Flux Schnell', cost: '10 credits' },
-  { name: 'Flux Dev', cost: '20 credits' },
-  { name: 'Stable Diffusion XL', cost: '15 credits' },
-  { name: 'Playground v2.5', cost: '12 credits' },
-];
+function SettingsRow({ icon: Icon, label, onPress, danger = false }) {
+  return (
+    <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.8}>
+      <View style={styles.rowLeft}>
+        <Icon color={danger ? COLORS.error : COLORS.textPrimary} size={20} strokeWidth={1.5} />
+        <Typography variant="bodyMedium" color={danger ? COLORS.error : COLORS.textPrimary}>
+          {label}
+        </Typography>
+      </View>
+      <ChevronRight color={COLORS.graphite} size={20} strokeWidth={1.5} />
+    </TouchableOpacity>
+  );
+}
 
 export default function CreditsScreen() {
   const { data } = useQuery({
@@ -29,19 +39,57 @@ export default function CreditsScreen() {
     staleTime: 30000,
   });
 
+  const deviceId = useAppStore(state => state.deviceId);
+
   const credits = data?.credits ?? 10;
+
+  const handleEmail = (subject) => {
+    Linking.openURL(`mailto:support@kastapp.co?subject=${encodeURIComponent(subject)}`);
+  };
+
+  const handleUrl = (url) => {
+    Linking.openURL(url);
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to delete your account? This action cannot be undone and you will lose all credits.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          style: "destructive",
+          onPress: async () => {
+            try {
+              // Mocking api call for MVP since delete api might not exist in client api yet
+              // await api.delete('/device');
+              alert('Account deleted.');
+              router.replace('/(onboarding)');
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        }
+      ]
+    );
+  };
 
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
-          <Typography variant="h2" color={COLORS.textPrimary}>Credits</Typography>
+          <Typography variant="h2" color={COLORS.textPrimary}>Settings</Typography>
         </View>
       </SafeAreaView>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-
-        {/* Balance Display */}
+        
+        {/* SECTION 1: ACCOUNT */}
+        <Typography variant="label" color={COLORS.textMuted} style={styles.sectionHeader}>
+          ACCOUNT
+        </Typography>
+        
         <View style={styles.balanceBlock}>
           <Typography variant="h1" color={COLORS.textPrimary} align="center" style={styles.balanceNumber}>
             {credits}
@@ -51,7 +99,6 @@ export default function CreditsScreen() {
           </Typography>
         </View>
 
-        {/* Upgrade Card */}
         <LinearGradient
           colors={['rgba(255,42,95,0.18)', 'rgba(112,0,255,0.18)']}
           start={{ x: 0, y: 0 }}
@@ -65,54 +112,54 @@ export default function CreditsScreen() {
             </View>
             <View style={styles.upgradeText}>
               <Typography variant="bodySemi" color={COLORS.textPrimary}>
-                Never run out of credits.
+                Upgrade to Pro
               </Typography>
               <Typography variant="label" color={COLORS.textSecondary} style={{ marginTop: 4 }}>
-                Unlimited generations with Pro.
+                Unlimited generations & priority
               </Typography>
             </View>
           </View>
           <Button
-            title="Upgrade to Pro"
+            title="Get Pro Now"
             variant="primary"
             onPress={() => router.push('/paywall')}
             style={styles.upgradeBtn}
           />
         </LinearGradient>
 
-        {/* Model Cost Breakdown */}
-        <View style={styles.costSection}>
-          <Typography
-            variant="caption"
-            color={COLORS.textMuted}
-            style={styles.costSectionLabel}
-          >
-            USAGE COSTS PER MODEL
+        <TouchableOpacity style={styles.restoreBtn} onPress={() => alert('Purchases restored')}>
+          <Typography variant="bodyMedium" color={COLORS.plasma} align="center">
+            Restore Purchases
           </Typography>
+        </TouchableOpacity>
 
-          {MODEL_COSTS.map((m, i) => (
-            <View
-              key={m.name}
-              style={[styles.costRow, i < MODEL_COSTS.length - 1 && styles.costRowBorder]}
-            >
-              <View style={styles.costRowLeft}>
-                <Zap color={COLORS.plasma} size={14} strokeWidth={1.5} />
-                <Typography variant="label" color={COLORS.textPrimary}>{m.name}</Typography>
-              </View>
-              <Typography variant="label" color={COLORS.warning} style={styles.costValue}>
-                {m.cost}
-              </Typography>
-            </View>
-          ))}
+        {/* SECTION 2: SUPPORT */}
+        <Typography variant="label" color={COLORS.textMuted} style={styles.sectionHeader}>
+          SUPPORT
+        </Typography>
+        <View style={styles.sectionBlock}>
+          <SettingsRow icon={Bug} label="Report a Bug" onPress={() => handleEmail('Bug Report')} />
+          <SettingsRow icon={Mail} label="Contact Support" onPress={() => handleEmail('Support Request')} />
         </View>
 
-        {/* Free credits info */}
-        <View style={styles.freeInfo}>
-          <Typography variant="caption" color={COLORS.textMuted} align="center">
-            New accounts receive 10 free credits.{'\n'}
-            Credits reset is not available on the free plan.
-          </Typography>
+        {/* SECTION 3: LEGAL */}
+        <Typography variant="label" color={COLORS.textMuted} style={styles.sectionHeader}>
+          LEGAL
+        </Typography>
+        <View style={styles.sectionBlock}>
+          <SettingsRow icon={Shield} label="Privacy Policy" onPress={() => handleUrl('https://kastapp.co/privacy')} />
+          <SettingsRow icon={FileText} label="Terms of Service" onPress={() => handleUrl('https://kastapp.co/terms')} />
         </View>
+
+        {/* SECTION 4: DANGER ZONE */}
+        <Typography variant="label" color={COLORS.textMuted} style={styles.sectionHeader}>
+          DANGER ZONE
+        </Typography>
+        <View style={styles.sectionBlock}>
+          <SettingsRow icon={Trash2} label="Delete Account" onPress={handleDeleteAccount} danger />
+        </View>
+
+        <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   );
@@ -127,10 +174,17 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   scroll: { paddingHorizontal: SIZES.paddingGlobal, paddingBottom: 40 },
+  sectionHeader: {
+    marginTop: 24,
+    marginBottom: 12,
+    paddingLeft: 4,
+    letterSpacing: 1,
+    fontFamily: FONTS.bodyMedium,
+  },
   balanceBlock: {
     alignItems: 'center',
-    marginTop: 32,
-    marginBottom: 32,
+    marginTop: 16,
+    marginBottom: 24,
   },
   balanceNumber: {
     fontSize: 72,
@@ -142,7 +196,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,42,95,0.4)',
     padding: 20,
-    marginBottom: 32,
+    marginBottom: 20,
     overflow: 'hidden',
     position: 'relative',
   },
@@ -165,33 +219,29 @@ const styles = StyleSheet.create({
   },
   upgradeText: { flex: 1 },
   upgradeBtn: { zIndex: 2 },
-  costSection: {
+  restoreBtn: {
+    paddingVertical: 12,
+    marginBottom: 12,
+  },
+  sectionBlock: {
     backgroundColor: COLORS.carbon,
     borderRadius: SIZES.radiusCard,
     borderWidth: 1,
     borderColor: COLORS.graphite,
     overflow: 'hidden',
-    marginBottom: 24,
   },
-  costSectionLabel: {
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 10,
-    letterSpacing: 1,
-    fontFamily: FONTS.bodyMedium,
-  },
-  costRow: {
+  row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  costRowBorder: {
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.graphite,
   },
-  costRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  costValue: { fontFamily: FONTS.bodyMedium },
-  freeInfo: { paddingVertical: 8 },
+  rowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
 });

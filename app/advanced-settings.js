@@ -9,17 +9,27 @@ import {
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { router } from 'expo-router';
-import { RefreshCw } from 'lucide-react-native';
+import { RefreshCw, Zap } from 'lucide-react-native';
+import { useQuery } from '@tanstack/react-query';
 import { COLORS, SIZES, FONTS } from '../src/constants/theme';
 import Typography from '../src/components/Typography';
 import Button from '../src/components/Button';
 import { useAppStore } from '../src/store/useAppStore';
+import { metaAPI } from '../src/services/api';
 
 const RATIOS = ['1:1', '4:3', '3:4', '9:21'];
 
 export default function AdvancedSettingsScreen() {
-  const { settings, updateSettings } = useAppStore();
+  const { settings, updateSettings, selectedModel, setModel } = useAppStore();
   const [localSettings, setLocalSettings] = useState({ ...settings });
+  const [localModel, setLocalModel] = useState(selectedModel);
+
+  const { data: modelsData } = useQuery({
+    queryKey: ['models'],
+    queryFn: metaAPI.getModels,
+    staleTime: Infinity,
+  });
+  const models_list = modelsData || [];
 
   const update = (key, val) => setLocalSettings(prev => ({ ...prev, [key]: val }));
 
@@ -29,6 +39,7 @@ export default function AdvancedSettingsScreen() {
 
   const handleApply = () => {
     updateSettings(localSettings);
+    setModel(localModel);
     router.back();
   };
 
@@ -39,6 +50,42 @@ export default function AdvancedSettingsScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Typography variant="h3" style={styles.title}>Advanced Settings</Typography>
+
+        {/* Model Selector */}
+        <View style={styles.section}>
+          <Typography variant="label" color={COLORS.textSecondary} style={styles.sectionLabel}>
+            Select Model
+          </Typography>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.modelList}>
+            {models_list.map((model) => (
+              <TouchableOpacity
+                key={model.replicateId}
+                style={[
+                  styles.modelPill,
+                  localModel === model.replicateId && styles.modelPillSelected
+                ]}
+                onPress={() => setLocalModel(model.replicateId)}
+                activeOpacity={0.8}
+              >
+                <Typography 
+                  variant="label" 
+                  color={localModel === model.replicateId ? COLORS.textPrimary : COLORS.textSecondary}
+                >
+                  {model.name}
+                </Typography>
+                <View style={styles.modelCostBadge}>
+                  <Zap color={localModel === model.replicateId ? COLORS.textPrimary : COLORS.textMuted} size={12} strokeWidth={2} />
+                  <Typography 
+                    variant="caption" 
+                    color={localModel === model.replicateId ? COLORS.textPrimary : COLORS.textMuted}
+                  >
+                    {model.credits}
+                  </Typography>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
 
         {/* Aspect Ratio */}
         <View style={styles.section}>
@@ -142,7 +189,7 @@ export default function AdvancedSettingsScreen() {
             style={styles.negativeInput}
             value={localSettings.negativePrompt}
             onChangeText={(v) => update('negativePrompt', v)}
-            placeholder="blurry, low quality, watermark..."
+            placeholder="What to exclude from the image..."
             placeholderTextColor={COLORS.textMuted}
             multiline
             numberOfLines={3}
@@ -189,6 +236,32 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 4,
+  },
+  modelList: {
+    gap: 8,
+    paddingBottom: 4,
+  },
+  modelPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: COLORS.obsidian,
+    borderWidth: 1,
+    borderColor: COLORS.graphite,
+    borderRadius: 9999,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginRight: 8,
+  },
+  modelPillSelected: {
+    backgroundColor: COLORS.plasma,
+    borderColor: COLORS.plasma,
+  },
+  modelCostBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    opacity: 0.8,
   },
   ratioRow: { flexDirection: 'row', gap: 10 },
   ratioTile: {
