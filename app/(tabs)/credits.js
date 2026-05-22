@@ -44,7 +44,7 @@ export default function CreditsScreen() {
   const credits = data?.credits ?? 10;
 
   const handleEmail = (subject) => {
-    Linking.openURL(`mailto:support@kastapp.co?subject=${encodeURIComponent(subject)}`);
+    Linking.openURL(`mailto:support@synoxapp.co?subject=${encodeURIComponent(subject)}`);
   };
 
   const handleUrl = (url) => {
@@ -147,8 +147,8 @@ export default function CreditsScreen() {
           LEGAL
         </Typography>
         <View style={styles.sectionBlock}>
-          <SettingsRow icon={Shield} label="Privacy Policy" onPress={() => handleUrl('https://kastapp.co/privacy')} />
-          <SettingsRow icon={FileText} label="Terms of Service" onPress={() => handleUrl('https://kastapp.co/terms')} />
+          <SettingsRow icon={Shield} label="Privacy Policy" onPress={() => handleUrl('https://synoxapp.co/privacy')} />
+          <SettingsRow icon={FileText} label="Terms of Service" onPress={() => handleUrl('https://synoxapp.co/terms')} />
         </View>
 
         {/* SECTION 4: DANGER ZONE */}

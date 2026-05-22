@@ -52,7 +52,7 @@ export default function Button({
         onPress={onPress} 
         disabled={disabled || loading}
         activeOpacity={0.8}
-        style={[style, disabled && styles.disabled]}
+        style={[styles.gradientContainer, style, disabled && styles.disabled]}
       >
         <LinearGradient
           colors={[COLORS.plasma, COLORS.electric]}

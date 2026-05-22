@@ -37,7 +37,7 @@ export default function ResultScreen() {
 
   const handleShare = async () => {
     try {
-      await Share.share({ url: imageUrl, message: `Created with Kast: ${currentPrompt}` });
+      await Share.share({ url: imageUrl, message: `Created with Synox: ${currentPrompt}` });
     } catch (e) {
       console.error(e);
     }

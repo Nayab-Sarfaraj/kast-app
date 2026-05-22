@@ -1,18 +1,18 @@
 {
   "expo": {
-    "name": "Kast",
-    "slug": "kast-app",
+    "name": "Synox",
+    "slug": "synox-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "kastapp",
+    "scheme": "synoxapp",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.kastapp.kast"
+      "bundleIdentifier": "com.synoxapp.synox"
     },
     "android": {
-      "package": "com.kastapp.kast",
+      "package": "com.synoxapp.synox",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

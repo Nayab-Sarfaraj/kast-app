@@ -41,7 +41,7 @@ const SLIDES = [
     id: 4,
     type: 'quote',
     title: 'Trusted by Creators',
-    quote: '"Kast changed how I prototype concepts. Nothing else comes close."',
+    quote: '"Synox changed how I prototype concepts. Nothing else comes close."',
     attribution: '— Alex D., Concept Artist',
     Icon: Heart,
   },

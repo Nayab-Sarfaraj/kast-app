@@ -16,7 +16,7 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     try {
-      const token = await SecureStore.getItemAsync('kast_jwt');
+      const token = await SecureStore.getItemAsync('synox_jwt');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -35,8 +35,8 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       console.log('Unauthorized, clearing auth and redirecting...');
       try {
-        await SecureStore.deleteItemAsync('kast_jwt');
-        await SecureStore.deleteItemAsync('kast_device_id');
+        await SecureStore.deleteItemAsync('synox_jwt');
+        await SecureStore.deleteItemAsync('synox_device_id');
       } catch (e) {
         console.error('Error clearing auth', e);
       }

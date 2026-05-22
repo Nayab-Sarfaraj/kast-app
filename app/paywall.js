@@ -43,16 +43,16 @@ export default function PaywallScreen() {
     if (isProcessing) return;
     setIsProcessing(true);
     try {
-      let deviceId = await SecureStore.getItemAsync('kast_device_id');
+      let deviceId = await SecureStore.getItemAsync('synox_device_id');
       if (!deviceId) {
         deviceId = 'device_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-        await SecureStore.setItemAsync('kast_device_id', deviceId);
+        await SecureStore.setItemAsync('synox_device_id', deviceId);
       }
       
       const res = await authAPI.register(deviceId);
       
       if (res.token) {
-        await SecureStore.setItemAsync('kast_jwt', res.token);
+        await SecureStore.setItemAsync('synox_jwt', res.token);
         setCredentials(deviceId, res.token);
       }
       

@@ -22,8 +22,8 @@ export default function EntryScreen() {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const deviceId = await SecureStore.getItemAsync('kast_device_id');
-        const token = await SecureStore.getItemAsync('kast_jwt');
+        const deviceId = await SecureStore.getItemAsync('synox_device_id');
+        const token = await SecureStore.getItemAsync('synox_jwt');
 
         if (!deviceId || !token) {
           // No credentials found, go to onboarding
@@ -37,8 +37,8 @@ export default function EntryScreen() {
 
         if (authError || !authData) {
           // Validation failed
-          await SecureStore.deleteItemAsync('kast_device_id');
-          await SecureStore.deleteItemAsync('kast_jwt');
+          await SecureStore.deleteItemAsync('synox_device_id');
+          await SecureStore.deleteItemAsync('synox_jwt');
           router.replace('/(onboarding)');
         } else {
           // Validation succeeded

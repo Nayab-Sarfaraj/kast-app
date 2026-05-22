@@ -1,6 +1,6 @@
-# Kast App
+# Synox App
 
-React Native / Expo frontend for Kast — a premium, dark-mode AI image generation app. Users open the app, type a prompt, pick a style, and get a high-quality image in seconds. No account required.
+React Native / Expo frontend for Synox — a premium, dark-mode AI image generation app. Users open the app, type a prompt, pick a style, and get a high-quality image in seconds. No account required.
 
 ## Tech Stack
 
@@ -24,7 +24,7 @@ React Native / Expo frontend for Kast — a premium, dark-mode AI image generati
 ## Project Structure
 
 ```
-kast-app/
+synox-app/
 ├── app/                        # Expo Router screens
 │   ├── _layout.js              # Root layout — QueryClient provider, font loading
 │   ├── index.js                # Entry point — checks auth, redirects accordingly
@@ -83,7 +83,7 @@ kast-app/
 
 | Variable | Description |
 |---|---|
-| `EXPO_PUBLIC_API_URL` | Base URL of the Kast API (e.g., `http://localhost:3000/api`) |
+| `EXPO_PUBLIC_API_URL` | Base URL of the Synox API (e.g., `http://localhost:3000/api`) |
 
 ## App Flows
 
@@ -160,7 +160,7 @@ History and model/style data are fetched and cached by TanStack Query, not store
 
 ## Related
 
-- **[kast-app](../kast-app)** — The Express.js backend this app connects to
-- **[Architecture Doc](../kast-api/docs/ARCHITECTURE.md)** — Full API contract, DB schema, and flow diagrams
-- **[PRD](../kast-api/docs/PRD.md)** — Product requirements and feature list
-- **[Brand Identity](../kast-api/docs/BRAND_IDENTITY.md)** — Full design system and brand guidelines
+- **[synox-app](../synox-app)** — The Express.js backend this app connects to
+- **[Architecture Doc](../synox-api/docs/ARCHITECTURE.md)** — Full API contract, DB schema, and flow diagrams
+- **[PRD](../synox-api/docs/PRD.md)** — Product requirements and feature list
+- **[Brand Identity](../synox-api/docs/BRAND_IDENTITY.md)** — Full design system and brand guidelines
