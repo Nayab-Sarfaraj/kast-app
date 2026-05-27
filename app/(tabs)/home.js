@@ -7,7 +7,9 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
+  Platform,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -16,6 +18,7 @@ import { useQuery } from '@tanstack/react-query';
 import { COLORS, SIZES, FONTS } from '../../src/constants/theme';
 import Typography from '../../src/components/Typography';
 import NoiseOverlay from '../../src/components/NoiseOverlay';
+import Skeleton from '../../src/components/Skeleton';
 import { useAppStore } from '../../src/store/useAppStore';
 import { metaAPI, generationAPI } from '../../src/services/api';
 
@@ -50,6 +53,7 @@ const MOCK_STYLES = [
 export default function HomeScreen() {
   const { currentPrompt, selectedStyle, selectedModel, settings, setPrompt, setStyle, setModel } = useAppStore();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isFetchingRandom, setIsFetchingRandom] = useState(false);
 
   const { data: stylesData } = useQuery({
     queryKey: ['styles'],
@@ -91,9 +95,20 @@ export default function HomeScreen() {
     }
   };
 
-  const handleRandomPrompt = () => {
-    const randomPrompt = RANDOM_PROMPTS[Math.floor(Math.random() * RANDOM_PROMPTS.length)];
-    setPrompt(randomPrompt);
+  const handleRandomPrompt = async () => {
+    if (isFetchingRandom) return;
+    try {
+      setIsFetchingRandom(true);
+      const res = await generationAPI.getRandomPrompt();
+      setPrompt(res.prompt);
+    } catch (error) {
+      console.error('Failed to fetch random prompt', error);
+      // Fallback
+      const randomPrompt = RANDOM_PROMPTS[Math.floor(Math.random() * RANDOM_PROMPTS.length)];
+      setPrompt(randomPrompt);
+    } finally {
+      setIsFetchingRandom(false);
+    }
   };
 
   return (
@@ -119,11 +134,13 @@ export default function HomeScreen() {
         </View>
       </SafeAreaView>
 
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        enableOnAndroid={true}
+        extraScrollHeight={120}
       >
         {/* Hero Banner Redesign */}
         <LinearGradient
@@ -219,16 +236,24 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.promptBox}>
-          <TextInput
-            style={styles.promptInput}
-            placeholder="Describe your masterpiece..."
-            placeholderTextColor={COLORS.textMuted}
-            value={currentPrompt}
-            onChangeText={setPrompt}
-            multiline
-            numberOfLines={5}
-            textAlignVertical="top"
-          />
+          {isFetchingRandom ? (
+            <View style={{ gap: 8 }}>
+              <Skeleton width="100%" height={20} borderRadius={4} />
+              <Skeleton width="85%" height={20} borderRadius={4} />
+              <Skeleton width="95%" height={20} borderRadius={4} />
+            </View>
+          ) : (
+            <TextInput
+              style={styles.promptInput}
+              placeholder="Describe your masterpiece..."
+              placeholderTextColor={COLORS.textMuted}
+              value={currentPrompt}
+              onChangeText={setPrompt}
+              multiline
+              numberOfLines={5}
+              textAlignVertical="top"
+            />
+          )}
         </View>
 
         {/* Advanced Settings Link */}
@@ -242,17 +267,16 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         <View style={{ height: 200 }} />
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* Floating Generate Button */}
       <View style={styles.fabContainer}>
         <TouchableOpacity
           style={[styles.fab, !currentPrompt.trim() && styles.fabDisabled]}
           onPress={handleGenerate}
-          activeOpacity={0.85}
-          disabled={!currentPrompt.trim()}
+          disabled={!currentPrompt.trim() || isGenerating}
         >
-          <Sparkles color={COLORS.textPrimary} size={20} strokeWidth={1.5} />
+          <Sparkles color={currentPrompt.trim() ? COLORS.textPrimary : COLORS.textMuted} size={20} strokeWidth={1.5} />
           <Typography variant="bodySemi" color={COLORS.textPrimary}>Generate</Typography>
         </TouchableOpacity>
       </View>
@@ -455,6 +479,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     flex: 1,
     minHeight: 80,
+    maxHeight: 150,
   },
   advancedBtn: {
     flexDirection: 'row',

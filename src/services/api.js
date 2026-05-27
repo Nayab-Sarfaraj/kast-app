@@ -70,6 +70,10 @@ export const generationAPI = {
     const res = await api.get(`/history?page=${pageParam}&limit=20`);
     return res.data;
   },
+  getRandomPrompt: async () => {
+    const res = await api.get('/random-prompt');
+    return res.data;
+  },
 };
 
 export const metaAPI = {
