@@ -2,11 +2,11 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
   Alert,
   Linking
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Crown, Bug, Mail, Shield, FileText, Trash2, ChevronRight } from 'lucide-react-native';

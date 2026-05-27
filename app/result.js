@@ -3,10 +3,10 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
-  SafeAreaView,
   Share,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as MediaLibrary from 'expo-media-library';
 import { ArrowLeft, Download, Share2, RefreshCw } from 'lucide-react-native';

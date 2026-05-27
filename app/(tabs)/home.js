@@ -5,10 +5,10 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   FlatList,
   Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Sparkles, Settings, ChevronRight, Image as ImageIcon, Zap, Shuffle } from 'lucide-react-native';

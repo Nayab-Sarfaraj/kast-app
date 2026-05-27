@@ -5,8 +5,8 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Slider from '@react-native-community/slider';
 import { router } from 'expo-router';
 import { RefreshCw, Zap } from 'lucide-react-native';

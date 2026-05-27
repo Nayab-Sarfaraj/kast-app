@@ -1,11 +1,12 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
   Animated,
-  SafeAreaView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { COLORS, SIZES, FONTS } from '../src/constants/theme';
@@ -41,25 +42,52 @@ export default function LoadingScreen() {
   const ringScale = ring.interpolate({ inputRange: [0, 1], outputRange: [1, 2.2] });
   const ringOpacity = ring.interpolate({ inputRange: [0, 0.7, 1], outputRange: [0.6, 0.1, 0] });
 
+  const [toastMsg, setToastMsg] = useState(null);
+  const toastAnim = useRef(new Animated.Value(-100)).current;
+
+  const showToastAndGoBack = (msg) => {
+    if (toastMsg) return;
+    setToastMsg(msg);
+    Animated.spring(toastAnim, {
+      toValue: 60,
+      useNativeDriver: true,
+      bounciness: 12,
+    }).start();
+
+    setTimeout(() => {
+      Animated.timing(toastAnim, {
+        toValue: -100,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        router.back();
+      });
+    }, 3500);
+  };
+
   // Poll for job status
-  const { data, isError } = useQuery({
+  const { data, isError, error } = useQuery({
     queryKey: ['jobStatus', jobId],
     queryFn: () => generationAPI.getJobStatus(jobId),
     enabled: !!jobId,
-    refetchInterval: (data) => {
-      if (!data) return 2500;
-      if (data.status === 'COMPLETED' || data.status === 'FAILED') return false;
+    refetchInterval: (query) => {
+      if (!query.state.data) return 2500;
+      if (query.state.data.status === 'COMPLETED' || query.state.data.status === 'FAILED') return false;
       return 2500;
     },
+    retry: false, // Don't retry on 400 errors from backend
   });
 
   useEffect(() => {
     if (data?.status === 'COMPLETED') {
       router.replace({ pathname: '/result', params: { jobId, imageUrl: data.imageUrl } });
-    } else if (data?.status === 'FAILED' || isError) {
-      router.back();
+    } else if (data?.status === 'FAILED') {
+      showToastAndGoBack(data?.error || 'Something went wrong while generating your image.');
+    } else if (isError) {
+      const errMsg = error?.response?.data?.error || 'Generation failed with an error.';
+      showToastAndGoBack(errMsg);
     }
-  }, [data, isError]);
+  }, [data, isError, error]);
 
   const handleCancel = () => {
     router.back();
@@ -70,6 +98,18 @@ export default function LoadingScreen() {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safe} />
+
+      {/* Custom Toast */}
+      <Animated.View
+        style={[
+          styles.toast,
+          { transform: [{ translateY: toastAnim }] },
+        ]}
+      >
+        <Typography variant="label" color="#FFF" style={styles.toastText}>
+          {toastMsg}
+        </Typography>
+      </Animated.View>
 
       <View style={styles.content}>
         {/* Animated Ring */}
@@ -138,4 +178,20 @@ const styles = StyleSheet.create({
   mainText: { marginBottom: 8 },
   subText: { marginBottom: 48 },
   cancelBtn: { paddingVertical: 12, paddingHorizontal: 24 },
+  toast: {
+    position: 'absolute',
+    top: 0,
+    left: SIZES.paddingGlobal,
+    right: SIZES.paddingGlobal,
+    backgroundColor: COLORS.plasma,
+    padding: 16,
+    borderRadius: SIZES.radiusCard,
+    zIndex: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  toastText: { textAlign: 'center' },
 });

@@ -4,19 +4,34 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
-  SafeAreaView,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { ImageOff, Sparkles } from 'lucide-react-native';
 import { COLORS, SIZES, FONTS } from '../../src/constants/theme';
 import Typography from '../../src/components/Typography';
 import Button from '../../src/components/Button';
+import Skeleton from '../../src/components/Skeleton';
 import { generationAPI } from '../../src/services/api';
 
 const { width } = Dimensions.get('window');
 const CARD_SIZE = (width - SIZES.paddingGlobal * 2 - 12) / 2;
+
+function HistorySkeleton() {
+  return (
+    <View style={styles.card}>
+      <Skeleton width="100%" height={CARD_SIZE} borderRadius={0} />
+      <View style={styles.cardFooter}>
+        <Skeleton width="80%" height={14} borderRadius={4} />
+        <View style={styles.cardMeta}>
+          <Skeleton width={40} height={16} borderRadius={4} style={{ marginTop: 6 }} />
+        </View>
+      </View>
+    </View>
+  );
+}
 
 function HistoryCard({ item }) {
   return (
@@ -94,7 +109,22 @@ export default function HistoryScreen() {
         </View>
       </SafeAreaView>
 
-      {!isLoading && generations.length === 0 ? (
+      {isLoading ? (
+        <View style={styles.list}>
+          <View style={styles.row}>
+            <HistorySkeleton />
+            <HistorySkeleton />
+          </View>
+          <View style={styles.row}>
+            <HistorySkeleton />
+            <HistorySkeleton />
+          </View>
+          <View style={styles.row}>
+            <HistorySkeleton />
+            <HistorySkeleton />
+          </View>
+        </View>
+      ) : generations.length === 0 ? (
         <EmptyState />
       ) : (
         <FlatList

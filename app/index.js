@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { useQuery } from '@tanstack/react-query';
 import { authAPI } from '../src/services/api';
 import { useAppStore } from '../src/store/useAppStore';
 import { COLORS } from '../src/constants/theme';
+import Skeleton from '../src/components/Skeleton';
 
 export default function EntryScreen() {
   const [isChecking, setIsChecking] = useState(true);
@@ -56,14 +57,16 @@ export default function EntryScreen() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" color={COLORS.plasma} />
-    </View>
+      <View style={styles.skeletonContainer}>
+        <Skeleton width={120} height={120} borderRadius={60} style={{ marginBottom: 40 }} />
+        <Skeleton width={200} height={24} borderRadius={4} style={{ marginBottom: 16 }} />
+        <Skeleton width={150} height={16} borderRadius={4} />
+      </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  skeletonContainer: {
     flex: 1,
     backgroundColor: COLORS.obsidian,
     justifyContent: 'center',
