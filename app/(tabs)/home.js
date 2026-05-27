@@ -237,10 +237,10 @@ export default function HomeScreen() {
 
         <View style={styles.promptBox}>
           {isFetchingRandom ? (
-            <View style={{ gap: 8 }}>
-              <Skeleton width="100%" height={20} borderRadius={4} />
-              <Skeleton width="85%" height={20} borderRadius={4} />
-              <Skeleton width="95%" height={20} borderRadius={4} />
+            <View style={[styles.promptInput, { gap: 8, paddingTop: 4 }]}>
+              <Skeleton width="100%" height={16} borderRadius={4} />
+              <Skeleton width="85%" height={16} borderRadius={4} />
+              <Skeleton width="95%" height={16} borderRadius={4} />
             </View>
           ) : (
             <TextInput

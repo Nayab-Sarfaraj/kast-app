@@ -24,9 +24,9 @@ function HistorySkeleton() {
     <View style={styles.card}>
       <Skeleton width="100%" height={CARD_SIZE} borderRadius={0} />
       <View style={styles.cardFooter}>
-        <Skeleton width="80%" height={14} borderRadius={4} />
+        <Skeleton width="85%" height={16} borderRadius={4} />
         <View style={styles.cardMeta}>
-          <Skeleton width={40} height={16} borderRadius={4} style={{ marginTop: 6 }} />
+          <Skeleton width={50} height={20} borderRadius={4} />
         </View>
       </View>
     </View>
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   list: { paddingHorizontal: SIZES.paddingGlobal, paddingBottom: 32 },
-  row: { gap: 12, marginBottom: 12 },
+  row: { flexDirection: 'row', gap: 12, marginBottom: 12, justifyContent: 'space-between' },
   card: {
     width: CARD_SIZE,
     borderRadius: SIZES.radiusImage,
