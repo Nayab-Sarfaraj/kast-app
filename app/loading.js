@@ -4,7 +4,6 @@ import {
   StyleSheet,
   Animated,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -15,8 +14,17 @@ import { useAppStore } from '../src/store/useAppStore';
 import { generationAPI } from '../src/services/api';
 
 export default function LoadingScreen() {
-  const { jobId } = useLocalSearchParams();
+  const params = useLocalSearchParams();
+  const incomingJobId = params.jobId;
+  const requestedPrompt = params.prompt;
+  const requestedModelId = params.modelId;
+  const requestedStyleName = params.styleName;
+  const requestedModelName = params.modelName;
+  const requestedModelCredits = params.modelCredits;
+  const requestedSettings = params.settings;
   const { selectedModel } = useAppStore();
+  const [activeJobId, setActiveJobId] = useState(incomingJobId || null);
+  const [requestError, setRequestError] = useState(null);
 
   const pulse = useRef(new Animated.Value(1)).current;
   const ring = useRef(new Animated.Value(0)).current;
@@ -65,11 +73,42 @@ export default function LoadingScreen() {
     }, 3500);
   };
 
+  // Start generation immediately if no jobId was provided
+  useEffect(() => {
+    let cancelled = false;
+
+    async function startGeneration() {
+      if (activeJobId || !requestedPrompt || !requestedModelId) return;
+      try {
+        let parsedSettings = {};
+        try {
+          parsedSettings = requestedSettings ? JSON.parse(requestedSettings) : {};
+        } catch (error) {
+          parsedSettings = {};
+        }
+
+        const res = await generationAPI.generate({
+          prompt: requestedPrompt,
+          modelId: requestedModelId,
+          styleName: requestedStyleName || null,
+          settings: parsedSettings,
+        });
+
+        if (!cancelled) setActiveJobId(res.jobId);
+      } catch (error) {
+        if (!cancelled) setRequestError(error);
+      }
+    }
+
+    startGeneration();
+    return () => { cancelled = true; };
+  }, [activeJobId, requestedPrompt, requestedModelId, requestedStyleName, requestedSettings]);
+
   // Poll for job status
   const { data, isError, error } = useQuery({
-    queryKey: ['jobStatus', jobId],
-    queryFn: () => generationAPI.getJobStatus(jobId),
-    enabled: !!jobId,
+    queryKey: ['jobStatus', activeJobId],
+    queryFn: () => generationAPI.getJobStatus(activeJobId),
+    enabled: !!activeJobId,
     refetchInterval: (query) => {
       if (!query.state.data) return 2500;
       if (query.state.data.status === 'COMPLETED' || query.state.data.status === 'FAILED') return false;
@@ -79,21 +118,28 @@ export default function LoadingScreen() {
   });
 
   useEffect(() => {
+    if (requestError) {
+      const errMsg = requestError?.response?.data?.error || 'Failed to start generation.';
+      showToastAndGoBack(errMsg);
+      return;
+    }
+
     if (data?.status === 'COMPLETED') {
-      router.replace({ pathname: '/result', params: { jobId, imageUrl: data.imageUrl } });
+      router.replace({ pathname: '/result', params: { jobId: activeJobId, imageUrl: data.imageUrl, refinedPrompt: data.refinedPrompt, originalPrompt: data.prompt } });
     } else if (data?.status === 'FAILED') {
       showToastAndGoBack(data?.error || 'Something went wrong while generating your image.');
     } else if (isError) {
       const errMsg = error?.response?.data?.error || 'Generation failed with an error.';
       showToastAndGoBack(errMsg);
     }
-  }, [data, isError, error]);
+  }, [data, isError, error, requestError, activeJobId]);
 
   const handleCancel = () => {
     router.back();
   };
 
-  const modelShortName = selectedModel?.split('/').pop() || 'flux-schnell';
+  const modelShortName = requestedModelName || requestedModelId?.split('/').pop() || selectedModel?.split('/').pop() || 'flux-schnell';
+  const modelCredits = requestedModelCredits || 'N/A';
 
   return (
     <View style={styles.container}>
@@ -121,7 +167,7 @@ export default function LoadingScreen() {
             ]}
           />
           <Animated.View style={[styles.innerCircle, { transform: [{ scale: pulse }] }]}>
-            <Typography variant="h2" color={COLORS.plasma}>K</Typography>
+            <Typography variant="h2" color={COLORS.plasma}>S</Typography>
           </Animated.View>
         </View>
 
@@ -130,7 +176,7 @@ export default function LoadingScreen() {
         </Typography>
 
         <Typography variant="label" color={COLORS.textSecondary} align="center" style={styles.subText}>
-          {modelShortName} · 10 credits
+          {modelShortName} · {modelCredits} credits
         </Typography>
 
         <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>

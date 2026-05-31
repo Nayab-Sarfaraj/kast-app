@@ -36,7 +36,6 @@ api.interceptors.response.use(
       console.log('Unauthorized, clearing auth and redirecting...');
       try {
         await SecureStore.deleteItemAsync('synox_jwt');
-        await SecureStore.deleteItemAsync('synox_device_id');
       } catch (e) {
         console.error('Error clearing auth', e);
       }

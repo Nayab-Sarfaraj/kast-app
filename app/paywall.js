@@ -7,8 +7,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
+import { router } from 'expo-router';
 import { X, Zap, Infinity, Paintbrush, Image as ImageIcon, Check, Users } from 'lucide-react-native';
 import { COLORS, SIZES, FONTS } from '../src/constants/theme';
 import Typography from '../src/components/Typography';
@@ -17,6 +17,8 @@ import { authAPI } from '../src/services/api';
 import { useAppStore } from '../src/store/useAppStore';
 import GradientPill from '../src/components/GradientPill';
 import NoiseOverlay from '../src/components/NoiseOverlay';
+import { getOrCreateDeviceId } from '../src/services/deviceIdentity';
+import InAppToast from '../src/components/InAppToast';
 
 const FEATURES = [
   { icon: Zap, title: 'Ultra Fast Processing', subtitle: 'Priority server access — no queue' },
@@ -37,17 +39,14 @@ export default function PaywallScreen() {
   const [selectedPlan, setSelectedPlan] = useState('annual');
   const [timeLeft] = useState('23:47:12');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'info' });
   const setCredentials = useAppStore(state => state.setCredentials);
 
   const handleContinue = async () => {
     if (isProcessing) return;
     setIsProcessing(true);
     try {
-      let deviceId = await SecureStore.getItemAsync('synox_device_id');
-      if (!deviceId) {
-        deviceId = 'device_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-        await SecureStore.setItemAsync('synox_device_id', deviceId);
-      }
+      const deviceId = await getOrCreateDeviceId();
       
       const res = await authAPI.register(deviceId);
       
@@ -59,13 +58,19 @@ export default function PaywallScreen() {
       router.replace('/(tabs)/home');
     } catch (error) {
       console.error('Failed to register device', error);
-      alert('Network error. Please try again.');
+      setToast({ visible: true, message: 'Network error. Please try again.', type: 'error' });
       setIsProcessing(false);
     }
   };
 
   return (
     <View style={styles.container}>
+      <InAppToast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast(prev => ({ ...prev, visible: false }))}
+      />
       {/* Skip button */}
       <SafeAreaView style={styles.topBar}>
         <TouchableOpacity onPress={handleContinue} style={styles.closeBtn}>

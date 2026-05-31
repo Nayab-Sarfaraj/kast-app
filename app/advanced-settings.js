@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Slider from '@react-native-community/slider';
 import { router } from 'expo-router';
-import { RefreshCw, Zap } from 'lucide-react-native';
+import { RefreshCw, Zap, X } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { COLORS, SIZES, FONTS } from '../src/constants/theme';
 import Typography from '../src/components/Typography';
@@ -44,25 +44,35 @@ export default function AdvancedSettingsScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Drag Handle */}
-      <View style={styles.handle} />
+    <View style={styles.overlay}>
+      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={() => router.back()} />
+      <View style={styles.container}>
+        {/* Fixed Header */}
+        <View style={styles.header}>
+          <View style={styles.handle} />
+          <View style={styles.headerContent}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
+              <X color={COLORS.textPrimary} size={20} strokeWidth={2} />
+            </TouchableOpacity>
+            <Typography variant="h3" style={styles.title}>Advanced Settings</Typography>
+            <View style={{ width: 40 }} />
+          </View>
+        </View>
 
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Typography variant="h3" style={styles.title}>Advanced Settings</Typography>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
         {/* Model Selector */}
         <View style={styles.section}>
           <Typography variant="label" color={COLORS.textSecondary} style={styles.sectionLabel}>
             Select Model
           </Typography>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.modelList}>
+          <View style={styles.modelGrid}>
             {models_list.map((model) => (
               <TouchableOpacity
                 key={model.replicateId}
                 style={[
-                  styles.modelPill,
-                  localModel === model.replicateId && styles.modelPillSelected
+                  styles.modelTile,
+                  localModel === model.replicateId && styles.modelTileSelected
                 ]}
                 onPress={() => setLocalModel(model.replicateId)}
                 activeOpacity={0.8}
@@ -70,21 +80,22 @@ export default function AdvancedSettingsScreen() {
                 <Typography 
                   variant="label" 
                   color={localModel === model.replicateId ? COLORS.textPrimary : COLORS.textSecondary}
+                  style={styles.modelName}
                 >
                   {model.name}
                 </Typography>
                 <View style={styles.modelCostBadge}>
-                  <Zap color={localModel === model.replicateId ? COLORS.textPrimary : COLORS.textMuted} size={12} strokeWidth={2} />
+                  <Zap color={localModel === model.replicateId ? COLORS.textPrimary : COLORS.textMuted} size={12} fill={localModel === model.replicateId ? COLORS.textPrimary : "none"} strokeWidth={2} />
                   <Typography 
                     variant="caption" 
                     color={localModel === model.replicateId ? COLORS.textPrimary : COLORS.textMuted}
                   >
-                    {model.credits}
+                    {model.credits} Credits
                   </Typography>
                 </View>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
         </View>
 
         {/* Aspect Ratio */}
@@ -197,20 +208,43 @@ export default function AdvancedSettingsScreen() {
           />
         </View>
 
-        <Button title="Apply Settings" variant="primary" onPress={handleApply} style={styles.applyBtn} />
-      </ScrollView>
+        </ScrollView>
+
+        {/* Fixed Footer */}
+        <View style={styles.footer}>
+          <Button title="Apply Settings" variant="primary" onPress={handleApply} style={styles.applyBtn} />
+        </View>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  overlay: {
     flex: 1,
+    justifyContent: 'flex-end',
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+  container: {
+    height: '80%',
     backgroundColor: COLORS.carbon,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderTopWidth: 1,
     borderColor: COLORS.graphite,
+    overflow: 'hidden',
+  },
+  header: {
+    paddingHorizontal: SIZES.paddingGlobal,
+    paddingTop: 12,
+    paddingBottom: 16,
+    backgroundColor: COLORS.carbon,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.graphite,
+    zIndex: 10,
   },
   handle: {
     width: 48,
@@ -218,11 +252,31 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.graphite,
     borderRadius: 2,
     alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 4,
+    marginBottom: 16,
   },
-  scroll: { paddingHorizontal: SIZES.paddingGlobal, paddingBottom: 40 },
-  title: { marginBottom: 24, marginTop: 12 },
+  title: { textAlign: 'center', flex: 1 },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  closeBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.obsidian, // Darker background to match screenshot
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scroll: { flex: 1 },
+  scrollContent: { paddingHorizontal: SIZES.paddingGlobal, paddingVertical: 24 },
+  footer: {
+    paddingHorizontal: SIZES.paddingGlobal,
+    paddingVertical: 16,
+    backgroundColor: COLORS.carbon,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.graphite,
+  },
   section: { marginBottom: 28 },
   sectionLabel: { marginBottom: 12 },
   sectionHeaderRow: {
@@ -237,31 +291,39 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
-  modelList: {
-    gap: 8,
-    paddingBottom: 4,
-  },
-  modelPill: {
+  modelGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  modelTile: {
+    width: '48%',
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
     backgroundColor: COLORS.obsidian,
     borderWidth: 1,
     borderColor: COLORS.graphite,
-    borderRadius: 9999,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginRight: 8,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
   },
-  modelPillSelected: {
+  modelTileSelected: {
     backgroundColor: COLORS.plasma,
     borderColor: COLORS.plasma,
+  },
+  modelName: {
+    fontFamily: FONTS.bodySemi,
+    marginBottom: 4,
+    textAlign: 'center',
   },
   modelCostBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
-    opacity: 0.8,
+    justifyContent: 'center',
+    gap: 4,
+    opacity: 0.9,
   },
   ratioRow: { flexDirection: 'row', gap: 10 },
   ratioTile: {

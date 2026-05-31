@@ -6,6 +6,7 @@ import {
   Alert,
   Linking
 } from 'react-native';
+import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -15,6 +16,7 @@ import { COLORS, SIZES, FONTS } from '../../src/constants/theme';
 import Typography from '../../src/components/Typography';
 import Button from '../../src/components/Button';
 import NoiseOverlay from '../../src/components/NoiseOverlay';
+import InAppToast from '../../src/components/InAppToast';
 import { authAPI } from '../../src/services/api';
 import { useAppStore } from '../../src/store/useAppStore';
 
@@ -33,6 +35,7 @@ function SettingsRow({ icon: Icon, label, onPress, danger = false }) {
 }
 
 export default function CreditsScreen() {
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'info' });
   const { data } = useQuery({
     queryKey: ['credits'],
     queryFn: authAPI.getCredits,
@@ -64,7 +67,7 @@ export default function CreditsScreen() {
             try {
               // Mocking api call for MVP since delete api might not exist in client api yet
               // await api.delete('/device');
-              alert('Account deleted.');
+              setToast({ visible: true, message: 'Account deleted.', type: 'success' });
               router.replace('/(onboarding)');
             } catch (err) {
               console.log(err);
@@ -77,6 +80,12 @@ export default function CreditsScreen() {
 
   return (
     <View style={styles.container}>
+      <InAppToast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast(prev => ({ ...prev, visible: false }))}
+      />
       <SafeAreaView style={styles.safe}>
         <View style={styles.header}>
           <Typography variant="h2" color={COLORS.textPrimary}>Settings</Typography>
@@ -127,7 +136,10 @@ export default function CreditsScreen() {
           />
         </LinearGradient>
 
-        <TouchableOpacity style={styles.restoreBtn} onPress={() => alert('Purchases restored')}>
+        <TouchableOpacity
+          style={styles.restoreBtn}
+          onPress={() => setToast({ visible: true, message: 'Purchases restored.', type: 'success' })}
+        >
           <Typography variant="bodyMedium" color={COLORS.plasma} align="center">
             Restore Purchases
           </Typography>

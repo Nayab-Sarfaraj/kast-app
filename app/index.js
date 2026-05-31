@@ -8,6 +8,7 @@ import { authAPI } from '../src/services/api';
 import { useAppStore } from '../src/store/useAppStore';
 import { COLORS, SIZES } from '../src/constants/theme';
 import Skeleton from '../src/components/Skeleton';
+import { getOrCreateDeviceId } from '../src/services/deviceIdentity';
 
 export default function EntryScreen() {
   const [isChecking, setIsChecking] = useState(true);
@@ -23,10 +24,18 @@ export default function EntryScreen() {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const deviceId = await SecureStore.getItemAsync('synox_device_id');
+        const deviceId = await getOrCreateDeviceId();
         const token = await SecureStore.getItemAsync('synox_jwt');
 
-        if (!deviceId || !token) {
+        if (!token) {
+          const registration = await authAPI.register(deviceId);
+          if (registration?.token) {
+            await SecureStore.setItemAsync('synox_jwt', registration.token);
+            setCredentials(deviceId, registration.token);
+            router.replace('/(tabs)/home');
+            return;
+          }
+
           router.replace('/(onboarding)');
           return;
         }
@@ -35,7 +44,6 @@ export default function EntryScreen() {
         const { data: authData, isError: authError } = await refetch();
 
         if (authError || !authData) {
-          await SecureStore.deleteItemAsync('synox_device_id');
           await SecureStore.deleteItemAsync('synox_jwt');
           router.replace('/(onboarding)');
         } else {

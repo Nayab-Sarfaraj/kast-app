@@ -9,8 +9,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { ImageOff, Sparkles } from 'lucide-react-native';
-import { COLORS, SIZES, FONTS } from '../../src/constants/theme';
+import { ImageOff } from 'lucide-react-native';
+import { COLORS, SIZES } from '../../src/constants/theme';
 import Typography from '../../src/components/Typography';
 import Button from '../../src/components/Button';
 import Skeleton from '../../src/components/Skeleton';
@@ -38,7 +38,20 @@ function HistoryCard({ item }) {
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.85}
-      onPress={() => router.push({ pathname: '/result', params: { imageUrl: item.imageUrl, jobId: item.id } })}
+      onPress={() => {
+        router.push({
+          pathname: '/result',
+          params: {
+            jobId: item.jobId || item.id,
+            imageUrl: item.imageUrl || '',
+            prompt: item.prompt || '',
+            refinedPrompt: item.refinedPrompt || '',
+            modelId: item.modelId || '',
+            styleName: item.styleName || '',
+            settings: item.settings ? JSON.stringify(item.settings) : ''
+          }
+        });
+      }}
     >
       {item.imageUrl ? (
         <Image source={{ uri: item.imageUrl }} style={styles.cardImage} resizeMode="cover" />

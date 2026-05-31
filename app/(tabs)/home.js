@@ -19,6 +19,7 @@ import { COLORS, SIZES, FONTS } from '../../src/constants/theme';
 import Typography from '../../src/components/Typography';
 import NoiseOverlay from '../../src/components/NoiseOverlay';
 import Skeleton from '../../src/components/Skeleton';
+import InAppToast from '../../src/components/InAppToast';
 import { useAppStore } from '../../src/store/useAppStore';
 import { metaAPI, generationAPI } from '../../src/services/api';
 
@@ -54,6 +55,7 @@ export default function HomeScreen() {
   const { currentPrompt, selectedStyle, selectedModel, settings, setPrompt, setStyle, setModel } = useAppStore();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isFetchingRandom, setIsFetchingRandom] = useState(false);
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'info' });
 
   const { data: stylesData } = useQuery({
     queryKey: ['styles'],
@@ -78,21 +80,18 @@ export default function HomeScreen() {
 
   const handleGenerate = async () => {
     if (!currentPrompt.trim() || isGenerating) return;
-    try {
-      setIsGenerating(true);
-      const res = await generationAPI.generate({
+    const selectedModelData = models_list.find((model) => model.replicateId === selectedModel);
+    router.push({
+      pathname: '/loading',
+      params: {
         prompt: currentPrompt,
         modelId: selectedModel,
-        styleName: selectedStyle,
-        settings,
-      });
-      router.push({ pathname: '/loading', params: { jobId: res.jobId } });
-    } catch (error) {
-      console.error('Failed to start generation', error);
-      alert('Failed to start generation. Check if you have credits!');
-    } finally {
-      setIsGenerating(false);
-    }
+        modelName: selectedModelData?.name || '',
+        modelCredits: String(selectedModelData?.credits ?? ''),
+        styleName: selectedStyle || '',
+        settings: JSON.stringify(settings || {}),
+      },
+    });
   };
 
   const handleRandomPrompt = async () => {
@@ -113,6 +112,12 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      <InAppToast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast(prev => ({ ...prev, visible: false }))}
+      />
       <SafeAreaView style={styles.safeTop}>
         {/* Top Nav */}
         <View style={styles.topNav}>
@@ -195,7 +200,7 @@ export default function HomeScreen() {
 
         <FlatList
           horizontal
-          data={styles_list.length > 0 ? styles_list : MOCK_STYLES}
+          data={styles_list.length > 0 ? styles_list.slice(0, 6) : MOCK_STYLES.slice(0, 6)}
           keyExtractor={(item) => item.id || item.name}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.stylesList}
@@ -229,10 +234,20 @@ export default function HomeScreen() {
           <Typography variant="label" color={COLORS.textSecondary}>
             Creative Prompt
           </Typography>
-          <TouchableOpacity style={styles.randomBtn} onPress={handleRandomPrompt}>
-            <Shuffle color={COLORS.plasma} size={16} strokeWidth={2} />
-            <Typography variant="caption" color={COLORS.plasma}>Random</Typography>
-          </TouchableOpacity>
+          <View style={styles.promptHeaderActions}>
+            <TouchableOpacity
+              style={styles.advancedBtn}
+              onPress={() => router.push('/advanced-settings')}
+            >
+              <Settings color={COLORS.textSecondary} size={14} strokeWidth={1.5} />
+              <Typography variant="caption" color={COLORS.textSecondary}>Advanced</Typography>
+              <ChevronRight color={COLORS.textMuted} size={12} strokeWidth={1.5} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.randomBtn} onPress={handleRandomPrompt}>
+              <Shuffle color={COLORS.plasma} size={16} strokeWidth={2} />
+              <Typography variant="caption" color={COLORS.plasma}>Random</Typography>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.promptBox}>
@@ -255,16 +270,6 @@ export default function HomeScreen() {
             />
           )}
         </View>
-
-        {/* Advanced Settings Link */}
-        <TouchableOpacity
-          style={styles.advancedBtn}
-          onPress={() => router.push('/advanced-settings')}
-        >
-          <Settings color={COLORS.textSecondary} size={16} strokeWidth={1.5} />
-          <Typography variant="label" color={COLORS.textSecondary}>Advanced Settings</Typography>
-          <ChevronRight color={COLORS.textMuted} size={14} strokeWidth={1.5} />
-        </TouchableOpacity>
 
         <View style={{ height: 200 }} />
       </KeyboardAwareScrollView>
@@ -463,6 +468,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,42,95,0.1)',
     borderRadius: 12,
   },
+  promptHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   promptBox: {
     backgroundColor: COLORS.carbon,
     borderWidth: 1,
@@ -484,8 +494,13 @@ const styles = StyleSheet.create({
   advancedBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingVertical: 12,
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: COLORS.carbon,
+    borderWidth: 1,
+    borderColor: COLORS.graphite,
+    borderRadius: 12,
   },
   
   fabContainer: {

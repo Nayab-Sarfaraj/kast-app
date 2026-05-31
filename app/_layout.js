@@ -52,7 +52,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
         <Stack.Screen name="styles-picker" />
-        <Stack.Screen name="advanced-settings" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="advanced-settings" options={{ presentation: 'transparentModal', animation: 'slide_from_bottom', contentStyle: { backgroundColor: 'transparent' } }} />
         <Stack.Screen name="loading" options={{ presentation: 'fullScreenModal' }} />
         <Stack.Screen name="result" />
       </Stack>
