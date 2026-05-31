@@ -8,6 +8,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { COLORS, SIZES, FONTS } from '../src/constants/theme';
 import Typography from '../src/components/Typography';
 import { useAppStore } from '../src/store/useAppStore';
@@ -25,6 +26,7 @@ export default function LoadingScreen() {
   const { selectedModel } = useAppStore();
   const [activeJobId, setActiveJobId] = useState(incomingJobId || null);
   const [requestError, setRequestError] = useState(null);
+  const queryClient = useQueryClient();
 
   const pulse = useRef(new Animated.Value(1)).current;
   const ring = useRef(new Animated.Value(0)).current;
@@ -125,6 +127,8 @@ export default function LoadingScreen() {
     }
 
     if (data?.status === 'COMPLETED') {
+      queryClient.invalidateQueries({ queryKey: ['history'] });
+      queryClient.invalidateQueries({ queryKey: ['history', 'latest'] });
       router.replace({ pathname: '/result', params: { jobId: activeJobId, imageUrl: data.imageUrl, refinedPrompt: data.refinedPrompt, originalPrompt: data.prompt } });
     } else if (data?.status === 'FAILED') {
       showToastAndGoBack(data?.error || 'Something went wrong while generating your image.');
@@ -132,7 +136,7 @@ export default function LoadingScreen() {
       const errMsg = error?.response?.data?.error || 'Generation failed with an error.';
       showToastAndGoBack(errMsg);
     }
-  }, [data, isError, error, requestError, activeJobId]);
+  }, [data, isError, error, requestError, activeJobId, queryClient]);
 
   const handleCancel = () => {
     router.back();

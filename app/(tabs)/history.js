@@ -5,10 +5,14 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useFocusEffect } from '@react-navigation/native';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import { ImageOff } from 'lucide-react-native';
 import { COLORS, SIZES } from '../../src/constants/theme';
 import Typography from '../../src/components/Typography';
@@ -99,12 +103,15 @@ function EmptyState() {
 }
 
 export default function HistoryScreen() {
+  const queryClient = useQueryClient();
   const {
     data,
     isLoading,
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
+    isRefetching,
+    refetch,
   } = useInfiniteQuery({
     queryKey: ['history'],
     queryFn: generationAPI.getHistory,
@@ -113,6 +120,13 @@ export default function HistoryScreen() {
   });
 
   const generations = data?.pages?.flatMap((p) => p.data || []) ?? [];
+
+  useFocusEffect(
+    useCallback(() => {
+      queryClient.invalidateQueries({ queryKey: ['history'] });
+      refetch();
+    }, [queryClient, refetch])
+  );
 
   return (
     <View style={styles.container}>
@@ -150,6 +164,20 @@ export default function HistoryScreen() {
           onEndReached={() => hasNextPage && fetchNextPage()}
           onEndReachedThreshold={0.4}
           renderItem={({ item }) => <HistoryCard item={item} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching && !isFetchingNextPage}
+              onRefresh={refetch}
+              tintColor={COLORS.plasma}
+            />
+          }
+          ListFooterComponent={
+            isFetchingNextPage ? (
+              <View style={styles.footerLoader}>
+                <ActivityIndicator color={COLORS.plasma} />
+              </View>
+            ) : null
+          }
         />
       )}
     </View>
@@ -214,4 +242,8 @@ const styles = StyleSheet.create({
   emptyTitle: { marginBottom: 8 },
   emptySubtitle: { marginBottom: 28 },
   emptyBtn: { paddingHorizontal: 24 },
+  footerLoader: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
 });

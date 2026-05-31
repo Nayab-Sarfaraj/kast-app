@@ -52,6 +52,8 @@ export default function ResultScreen() {
   const refinedPrompt = jobData?.refinedPrompt || params.refinedPrompt;
   const originalPrompt = jobData?.prompt || params.prompt || currentPrompt;
   const modelId = jobData?.modelId || params.modelId;
+  const modelName = params.modelName;
+  const modelCredits = String(jobData?.cost ?? params.modelCredits ?? '');
   const styleName = jobData?.styleName || params.styleName;
   const styleModifier = jobData?.styleModifier;
   let parsedSettings = {};
@@ -134,7 +136,20 @@ export default function ResultScreen() {
   };
 
   const handleRegenerate = () => {
-    router.replace({ pathname: '/loading', params: { jobId } });
+    const nextPrompt = originalPrompt || '';
+    if (!nextPrompt || !modelId) return;
+
+    router.replace({
+      pathname: '/loading',
+      params: {
+        prompt: nextPrompt,
+        modelId,
+        modelName: modelName || modelShortName,
+        modelCredits,
+        styleName: styleName || '',
+        settings: JSON.stringify(settings || {}),
+      },
+    });
   };
 
   return (
