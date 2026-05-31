@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 16,
   },
-  list: { paddingHorizontal: SIZES.paddingGlobal, paddingBottom: 32 },
+  list: { paddingHorizontal: SIZES.paddingGlobal, paddingBottom: 120 },
   row: { flexDirection: 'row', gap: 12, marginBottom: 12, justifyContent: 'space-between' },
   card: {
     width: CARD_SIZE,

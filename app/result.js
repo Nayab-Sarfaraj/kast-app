@@ -12,7 +12,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
-import { ArrowLeft, Download, Share2, RefreshCw, X, Maximize2, ChevronDown, ChevronUp } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
+import { ArrowLeft, Download, Share2, RefreshCw, X, Maximize2, ChevronDown, ChevronUp, Copy } from 'lucide-react-native';
 import { COLORS, SIZES, FONTS } from '../src/constants/theme';
 import Typography from '../src/components/Typography';
 import Button from '../src/components/Button';
@@ -66,6 +67,11 @@ export default function ResultScreen() {
 
   const modelShortName = modelId?.split('/').pop() || selectedModel?.split('/').pop() || 'flux-schnell';
 
+  const copyToClipboard = async (text) => {
+    await Clipboard.setStringAsync(text || '');
+    Alert.alert('Copied!', 'Text copied to clipboard.');
+  };
+
   const renderExpandableText = (label, text, expanded, setExpanded, accent = false) => {
     const value = text || 'N/A';
     const isLong = value.length > 180;
@@ -73,13 +79,18 @@ export default function ResultScreen() {
 
     return (
       <View style={styles.infoBlock}>
-        <Typography
-          variant="caption"
-          color={accent ? COLORS.plasma : COLORS.textMuted}
-          style={{ marginBottom: 6, fontFamily: FONTS.bodySemi }}
-        >
-          {label}
-        </Typography>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <Typography
+            variant="caption"
+            color={accent ? COLORS.plasma : COLORS.textMuted}
+            style={{ fontFamily: FONTS.bodySemi }}
+          >
+            {label}
+          </Typography>
+          <TouchableOpacity onPress={() => copyToClipboard(value)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Copy color={accent ? COLORS.plasma : COLORS.textMuted} size={14} strokeWidth={2} />
+          </TouchableOpacity>
+        </View>
         <Typography variant="bodyMedium" color={COLORS.textPrimary}>
           {displayText}
         </Typography>
